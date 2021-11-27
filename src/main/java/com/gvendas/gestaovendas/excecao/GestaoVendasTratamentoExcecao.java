@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GestaoVendasTratamentoExcecao extends ResponseEntityExceptionHandler {
 
 	private static final String COSTANT_VALIDATION_NOT_BLANK = "NotBlank";
+	private static final String COSTANT_VALIDATION_NOT_NULL = "NotNull";
 	private static final String COSTANT_VALIDATION_LENGHT = "Length";
+	private static final String COSTANT_VALIDATION_PATTERN = "Pattern";
 
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -38,6 +41,14 @@ public class GestaoVendasTratamentoExcecao extends ResponseEntityExceptionHandle
 		List<Erro> erros = Arrays.asList(new Erro(msgUsuario, msgDesenvolvedor));
 		return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
 	}
+	
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request){
+		String msgUsuario = "Recurso não encontrado";
+		String msgDesenvolvedor = ex.toString();
+		List<Erro> erros = Arrays.asList(new Erro(msgUsuario, msgDesenvolvedor));
+		return handleExceptionInternal(ex, erros, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+	}	
 	
 	@ExceptionHandler(RegraNegocioException.class)
 	public ResponseEntity<Object> handleRegraNegocioException(RegraNegocioException ex, WebRequest request){
@@ -62,9 +73,15 @@ public class GestaoVendasTratamentoExcecao extends ResponseEntityExceptionHandle
 		if (fieldError.getCode().equals(COSTANT_VALIDATION_NOT_BLANK)) {
 			return fieldError.getDefaultMessage().concat(" é obrigatório");
 		}
+		if (fieldError.getCode().equals(COSTANT_VALIDATION_NOT_NULL)) {
+			return fieldError.getDefaultMessage().concat(" é obrigatório");
+		}
 		if (fieldError.getCode().equals(COSTANT_VALIDATION_LENGHT)) {
 			return fieldError.getDefaultMessage().concat(String.format(" deve ter entre %s e %s caracteres",
 					fieldError.getArguments()[2], fieldError.getArguments()[1]));
+		}
+		if (fieldError.getCode().equals(COSTANT_VALIDATION_PATTERN)) {
+			return fieldError.getDefaultMessage().concat(" formato inválido");
 		}
 		return fieldError.toString();
 	}

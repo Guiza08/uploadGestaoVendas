@@ -18,4 +18,5 @@ public interface ProdutoRepositorio extends JpaRepository<Produto, Long> {
 			+ "   and prod.categoria.codigo = :codigoCategoria")
 	Optional<Produto> buscarPorCodigo(Long codigo, Long codigoCategoria);
 	
+	Optional<Produto> findByCategoriaCodigoAndDescricao(Long codigoCategoria, String descricao);	
 }	
